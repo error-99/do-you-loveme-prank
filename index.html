@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Do you love me?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Base Styles */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background-color: #ffe6e9;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden; /* Prevent body scroll */
+      position: relative; /* For background particles */
+    }
+
+    /* Background Particles (New) */
+    .particle {
+      position: absolute;
+      background-color: rgba(255, 107, 129, 0.3);
+      border-radius: 50%;
+      opacity: 0;
+      animation: particleAnimation 10s infinite ease-in-out;
+      pointer-events: none;
+    }
+    .particle:nth-child(1) { width: 15px; height: 15px; top: 10%; left: 20%; animation-delay: 0s; }
+    .particle:nth-child(2) { width: 20px; height: 20px; top: 30%; left: 80%; animation-delay: 2s; }
+    .particle:nth-child(3) { width: 10px; height: 10px; top: 60%; left: 40%; animation-delay: 4s; }
+    .particle:nth-child(4) { width: 25px; height: 25px; top: 80%; left: 10%; animation-delay: 6s; }
+    .particle:nth-child(5) { width: 18px; height: 18px; top: 50%; left: 90%; animation-delay: 8s; }
+
+    /* Main Container (Step 1) */
+    .container { 
+      text-align: center; 
+      position: relative; 
+      width: 90%; 
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px; 
+      background-color: rgba(255, 255, 255, 0.95); /* More opaque */
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(255, 107, 129, 0.4); /* Enhanced shadow */
+      animation: fadeInScale 0.8s ease-out; 
+      z-index: 1; /* Ensure it's above particles */
+    }
+    img.main-gif {
+      max-width: 80%; 
+      height: auto; 
+      border-radius: 15px; 
+      margin-bottom: 2rem;
+      user-select: none;
+      pointer-events: none;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+    }
+    .question {
+      font-size: 2.5rem;
+      color: #ff6b81;
+      word-wrap: break-word; 
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1); 
+      font-weight: 700; /* Make question bolder */
+    }
+    .btn {
+      padding: 12px 28px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 30px;
+      background-color: #ff6b81;
+      color: white;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s ease; 
+      box-shadow: 0 4px 15px rgba(255, 107, 129, 0.5);
+      position: relative;
+      white-space: nowrap; 
+      overflow: hidden; 
+      font-weight: 700;
+    }
+    .btn:hover {
+      background-color: #ffa4b1;
+      transform: scale(1.08) translateY(-3px); 
+      box-shadow: 0 6px 20px rgba(255, 107, 129, 0.7);
+    }
+    .btn-no {
+      position: fixed; 
+      transition: left 0.3s ease-out, top 0.3s ease-out, transform 0.1s ease-in-out; 
+      z-index: 100;
+    }
+    .btn-no:hover {
+      animation: shake 0.5s infinite; 
+    }
+    .btn-yes {
+      min-width: 85px;
+      min-height: 48px;
+    }
+    .btn-group {
+      margin-top: 30px;
+      position: relative;
+      height: 80px; 
+      width: 100%;
+      display: flex; 
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Fullscreen Page (Step 2) */
+    .fullscreen {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: linear-gradient(135deg, #ff8fcd, #ff6b81); 
+      color: white;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      animation: fadeIn 0.5s ease-in-out;
+      padding: 20px; 
+      text-align: center; 
+    }
+    .fullscreen img {
+      width: 80%; 
+      max-width: 280px; 
+      height: auto; 
+      border-radius: 20px; 
+      margin-bottom: 20px;
+      animation: pop 0.6s ease, float 3s ease-in-out infinite; 
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); 
+    }
+    .fullscreen h1 {
+      font-size: 3rem; 
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      font-weight: 700;
+    }
+
+    /* Popup */
+    .popup-overlay { /* New overlay for dimming background */
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: rgba(0, 0, 0, 0.5); /* Dimming effect */
+      z-index: 1999; /* Below popup, above everything else */
+      animation: fadeIn 0.3s ease-out;
+    }
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%; 
+      left: 50%;
+      transform: translate(-50%, -50%); /* Centered */
+      background: white;
+      border-radius: 20px; 
+      padding: 25px; 
+      width: 90%; 
+      max-width: 420px; 
+      z-index: 2000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+      animation: pop 0.3s ease-out; 
+      box-sizing: border-box; 
+      position: relative; 
+    }
+    .popup-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 2rem; /* Larger for better tap target */
+      color: #ccc;
+      cursor: pointer;
+      transition: color 0.2s ease, transform 0.2s ease;
+      line-height: 1; 
+      font-weight: 300; /* Lighter font weight for 'x' */
+      padding: 5px; /* Make clickable area larger */
+    }
+    .popup-close:hover {
+      color: #ff6b81;
+      transform: rotate(90deg) scale(1.1); /* More pronounced hover */
+    }
+    .popup img {
+      width: 150px; 
+      height: auto;
+      margin: 0 auto 15px; 
+      display: block;
+      border-radius: 10px;
+    }
+    .popup input, .popup textarea {
+      width: 100%;
+      margin-bottom: 15px; 
+      padding: 14px; 
+      border-radius: 10px; 
+      border: 1px solid #ddd; 
+      font-family: inherit;
+      font-size: 1.1rem; 
+      box-sizing: border-box; 
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .popup input:focus, .popup textarea:focus {
+      border-color: #ff6b81;
+      box-shadow: 0 0 0 3px rgba(255, 107, 129, 0.2);
+      outline: none;
+    }
+    .popup button {
+      background-color: #ff6b81;
+      color: white;
+      border: none;
+      padding: 14px; 
+      border-radius: 30px; 
+      cursor: pointer;
+      width: 100%;
+      font-size: 1.1rem;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      font-weight: 700;
+    }
+    .popup button:hover {
+      background-color: #ffa4b1;
+      transform: translateY(-2px);
+    }
+    .success {
+      margin-top: 15px; 
+      color: #ff6b81;
+      font-weight: bold;
+      text-align: center;
+      font-size: 1.1rem;
+      animation: pop 0.3s ease;
+      display: none;
+    }
+    .loading {
+      display: none;
+      margin-top: 15px; 
+      text-align: center;
+      font-size: 1rem;
+      color: #888;
+    }
+    .spinner {
+      border: 4px solid rgba(0,0,0,0.1);
+      border-left-color: #ff6b81;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+    }
+
+    /* Keyframe Animations */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    @keyframes fadeInScale { 
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes float { 
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    @keyframes shake { 
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+    @keyframes particleAnimation { /* New particle animation */
+      0% { transform: translate(0, 0) scale(0); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translate(var(--x), var(--y)) scale(1); opacity: 0; }
+    }
+
+    /* Media Queries */
+    @media (max-width: 600px) {
+      .question {
+        font-size: 2rem; 
+      }
+      .btn {
+        font-size: 1rem;
+        padding: 10px 20px;
+      }
+      .fullscreen h1 {
+        font-size: 2.5rem; 
+      }
+      .popup {
+        padding: 20px;
+      }
+      .popup input, .popup textarea {
+        font-size: 1rem;
+        padding: 12px;
+      }
+      .popup button {
+        font-size: 1rem;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background Particles -->
+<div class="particle" style="--x: 100px; --y: 150px;"></div>
+<div class="particle" style="--x: -200px; --y: 50px;"></div>
+<div class="particle" style="--x: 50px; --y: -100px;"></div>
+<div class="particle" style="--x: -150px; --y: -200px;"></div>
+<div class="particle" style="--x: 200px; --y: -50px;"></div>
+
+<!-- Step 1 -->
+<div class="container" id="main">
+  <img class="main-gif" src="https://media.tenor.com/1mTPXADa0yMAAAAj/cry-miss.gif" alt="Love ask" />
+  <div class="question">Do you love me?</div>
+  <div class="btn-group">
+    <button class="btn btn-yes" id="yesBtn">Yes</button>
+    <button class="btn btn-no" id="noBtn">No</button>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div class="fullscreen" id="fullscreenPage">
+  <img src="https://i.imgur.com/YbzbgC0.gif" alt="I knew it!">
+  <h1>I knew it! 😍</h1>
+  <br><br>
+  <button class="btn" onclick="openPopup()">Message for me?</button>
+</div>
+
+<!-- Popup Overlay -->
+<div class="popup-overlay" id="popupOverlay" onclick="closePopup()"></div>
+
+<!-- Popup -->
+<div class="popup" id="popup">
+  <button class="popup-close" onclick="closePopup()" aria-label="Close popup">&times;</button>
+  <img src="https://media1.tenor.com/m/hEvneyLcIfgAAAAC/mad.gif" alt="mini gif" />
+  <input type="text" id="name" placeholder="Your name" autocomplete="off"/>
+  <textarea id="message" rows="3" placeholder="Your message"></textarea>
+  <button onclick="sendMessage()" id="sendBtn">Send Message</button>
+  <div class="loading" id="loading"><div class="spinner"></div>Sending...</div>
+  <div class="success" id="successMsg"></div> 
+</div>
+
+<script>
+  // Replace with your real token & chat id!
+  const TOKEN = "6858799848:AAGrPDED8NlF_jIZ-IVSyJx2jmfadYhumWg";
+  const CHAT_ID = "5329768924";
+
+  // Fullscreen helper
+  async function requestFullscreen(element) {
+    if (!document.fullscreenElement) {
+      if (element.requestFullscreen) await element.requestFullscreen();
+      else if (element.webkitRequestFullscreen) await element.webkitRequestFullscreen();
+      else if (element.msRequestFullscreen) await element.fullscreenEnabled && element.msRequestFullscreen();
+    }
+  }
+
+  // Make whole step-1 area clickable for fullscreen, only once
+  let fullscreenEntered = false;
+  const mainContainer = document.getElementById("main");
+  mainContainer.addEventListener('click', async function(e) {
+    if (!fullscreenEntered) {
+      await requestFullscreen(document.documentElement);
+      fullscreenEntered = true;
+    }
+  });
+
+  // Yes button
+  document.getElementById("yesBtn").addEventListener("click", async function(e) {
+    e.stopPropagation();
+    if (!fullscreenEntered) {
+      await requestFullscreen(document.documentElement);
+      fullscreenEntered = true;
+    }
+    document.getElementById("main").style.display = "none";
+    document.getElementById("fullscreenPage").style.display = "flex";
+  });
+
+  // No button movement (screen-wide and more genuine random)
+  function moveNo() {
+    const btn = document.getElementById("noBtn");
+    const btnW = btn.offsetWidth;
+    const btnH = btn.offsetHeight;
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+
+    // Calculate max movement within the entire screen, ensuring button stays fully visible
+    const maxLeft = screenW - btnW;
+    const maxTop = screenH - btnH;
+
+    // Generate truly random positions
+    const left = Math.random() * maxLeft;
+    const top = Math.random() * maxTop;
+
+    btn.style.left = `${left}px`;
+    btn.style.top = `${top}px`;
+  }
+
+  // Initial positioning for the 'No' button and reposition on resize
+  window.addEventListener('load', moveNo); 
+  window.addEventListener('resize', moveNo); 
+
+  document.getElementById("noBtn").addEventListener("mouseover", moveNo);
+  document.getElementById("noBtn").addEventListener("mousedown", moveNo);
+  document.getElementById("noBtn").addEventListener("touchstart", moveNo);
+
+  // Popup open
+  function openPopup() {
+    document.getElementById("popupOverlay").style.display = "block"; // Show overlay
+    document.getElementById("popup").style.display = "block";
+    document.getElementById("successMsg").style.display = "none";
+    document.getElementById("name").value = ""; 
+    document.getElementById("message").value = "";
+  }
+
+  // Popup close
+  function closePopup() {
+    document.getElementById("popupOverlay").style.display = "none"; // Hide overlay
+    document.getElementById("popup").style.display = "none";
+  }
+
+  // Prevent scrolling on mobile (consider carefully for complex pages)
+  document.body.addEventListener('touchmove', function(e) {
+    // Only prevent if the popup is not open, or if the scroll is not within the textarea
+    if (document.getElementById("popup").style.display !== "block" || e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  // Send message
+  async function sendMessage() {
+    const name = document.getElementById("name").value.trim();
+    const message = document.getElementById("message").value.trim();
+    const loading = document.getElementById("loading");
+    const success = document.getElementById("successMsg");
+    const sendBtn = document.getElementById("sendBtn");
+
+    success.style.display = "none"; 
+
+    if (!name || !message) {
+      success.innerText = "Please enter your name and message.";
+      success.style.color = "red"; 
+      success.style.display = "block";
+      return;
+    }
+
+    loading.style.display = "block";
+    sendBtn.disabled = true; 
+
+    const text = `💌 New Message!\n👤 Name: ${name}\n📝 Message: ${message}`;
+    const url = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: CHAT_ID, text })
+      });
+
+      if (response.ok) {
+        success.innerText = "Successfully sent!";
+        success.style.color = "#ff6b81"; 
+      } else {
+        console.error("Telegram API error:", response.status, response.statusText);
+        success.innerText = "Message sent (may have failed to deliver).";
+        success.style.color = "orange"; 
+      }
+    } catch (err) {
+      console.error("Network or fetch error:", err);
+      success.innerText = "Message sent (network error).";
+      success.style.color = "orange"; 
+    } finally {
+      loading.style.display = "none";
+      success.style.display = "block";
+      sendBtn.disabled = false; 
+    }
+  }
+</script>
+</body>
+</html>
